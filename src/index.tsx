@@ -21,7 +21,7 @@ const hasWindow = () => {
 export const OfflineSyncProvider: FC<{
   children: ReactElement;
   render?: (status: { isOffline?: boolean; isOnline: boolean }) => ReactNode;
-  onStatusChange?: (status: { isOffline: boolean; isOnline: boolean }) => void;
+  onStatusChange?: (status: { isOnline: boolean }) => void;
   toastConfig?: any;
 }> = ({ children, render, onStatusChange, toastConfig }) => {
   // Manage state for data, offline status, and online status
@@ -57,7 +57,7 @@ export const OfflineSyncProvider: FC<{
   // Event handler for status change
   const handleEvent = (isOffline = true) => {
     const isOnline = !isOffline;
-    onStatusChange?.({ isOffline, isOnline });
+    onStatusChange?.({ isOnline });
     setIsOnline(isOnline);
   };
   return (
@@ -87,3 +87,5 @@ export const OfflineSyncProvider: FC<{
 export const useOfflineSyncContext = () => {
   return useContext(DataSyncContext);
 };
+
+
