@@ -13,6 +13,9 @@ $ npm install --save offline-sync-handler
 $ yarn add offline-sync-handler
 ```
 
+## Demo
+   You can find the working demo [here](https://offline-handler-demo.vercel.app)
+
 ## Usage
 
 ### Offline Sync Provider
@@ -132,6 +135,10 @@ ReactDOM.render(
   rootElement
 );
 ```
+
+## Roadmaps
+
+ * Passing callbacks functions to be triggered on request success/failure.
 
 ## License
 

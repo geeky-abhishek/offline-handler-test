@@ -1,5 +1,5 @@
 {
-  "version": "0.1.18",
+  "version": "0.1.8",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/geeky-abhishek/offline-handler-test"
+    "url": "https://github.com/Samagra-Development/offline-sync-handler"
   },
   "scripts": {
     "start": "tsdx watch",
@@ -37,9 +37,9 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "offline-sync-handler-test",
+  "name": "offline-sync-handler",
   "author": "Saiyan Abhishek",
-  "module": "dist/offline-sync-handler-test.esm.js",
+  "module": "dist/offline-sync-handler.esm.js",
   "size-limit": [
     {
       "path": "dist/offline-sync-handler.cjs.production.min.js",
