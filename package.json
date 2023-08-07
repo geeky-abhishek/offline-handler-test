@@ -1,5 +1,5 @@
 {
-  "version": "0.1.8",
+  "version": "0.1.53",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Samagra-Development/offline-sync-handler"
+    "url": "https://github.com/geeky-abhishek/offline-handler-test"
   },
   "scripts": {
     "start": "tsdx watch",
@@ -37,9 +37,9 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "offline-sync-handler",
+  "name": "offline-sync-handler-test",
   "author": "Saiyan Abhishek",
-  "module": "dist/offline-sync-handler.esm.js",
+  "module": "dist/offline-sync-handler-test.esm.js",
   "size-limit": [
     {
       "path": "dist/offline-sync-handler.cjs.production.min.js",
@@ -53,11 +53,9 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.2.6",
     "@types/react": "^18.2.14",
-    "@types/react-dom": "^18.2.6",
     "@types/underscore": "^1.11.5",
     "husky": "^8.0.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "size-limit": "^8.2.6",
     "tsdx": "^0.14.1",
     "tslib": "^2.6.0",
@@ -66,7 +64,6 @@
   "dependencies": {
     "axios": "^1.4.0",
     "localforage": "^1.10.0",
-    "react-toastify": "^9.1.3",
     "underscore": "^1.13.6"
   }
 }
