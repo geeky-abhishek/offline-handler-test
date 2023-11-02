@@ -13,7 +13,7 @@ import localForage from 'localforage';
 
 import { omit } from 'underscore';
 const api = axios.create();
-const RETRY_LIMIT = 3;
+const RETRY_LIMIT = 1;
 const RETRY_DELAY_MS = 1000;
 const API_REQUESTS_STORAGE_KEY = 'apiRequests';
 
@@ -21,19 +21,26 @@ import {
   generateUuid,
   getStoredRequests,
   clearStoredRequests,
+  setStorage,
+  objectToFormData,
+  formDataToObject,
 } from './api-helper';
 
 // Check if window object exists
 const hasWindow = () => {
   return window && typeof window !== 'undefined';
 };
-
+type ConfigType = {
+  isFormdata?: boolean;
+  maxRetry?: number;
+};
 export const OfflineSyncProvider: FC<{
   children: ReactElement;
   render?: (status: { isOffline?: boolean; isOnline: boolean }) => ReactNode;
   onStatusChange?: (status: { isOnline: boolean }) => void;
   onCallback?: (data: any) => void;
   toastConfig?: any;
+  config?: ConfigType;
 }> = ({ children, render, onStatusChange, onCallback }) => {
   // Manage state for data, offline status, and online status
   const [data, setData] = useState<Record<string, any>>({});
@@ -75,12 +82,20 @@ export const OfflineSyncProvider: FC<{
     syncOfflineRequests();
   }, []);
 
-  const saveRequestToOfflineStorage = async (config: any) => {
+  const saveRequestToOfflineStorage = async (apiConfig: any) => {
     try {
       const storedRequests: Array<any> =
         (await localForage.getItem(API_REQUESTS_STORAGE_KEY)) || [];
-      storedRequests.push(omit({ ...config }, 'onSuccess'));
-      await localForage.setItem(API_REQUESTS_STORAGE_KEY, storedRequests);
+      
+      if(apiConfig?.isFormdata && apiConfig?.data instanceof FormData){
+        console.log({apiConfig})
+        storedRequests.push(omit({ ...apiConfig,data:formDataToObject(apiConfig.data) }, 'onSuccess'));
+      }
+     else {
+      storedRequests.push(omit({ ...apiConfig }, 'onSuccess'));
+    
+     }
+     await localForage.setItem(API_REQUESTS_STORAGE_KEY, storedRequests);
     } catch (error) {
       console.error('Error saving API request for offline:', error);
     }
@@ -90,10 +105,18 @@ export const OfflineSyncProvider: FC<{
   const performRequest = async (config: any): Promise<any> => {
     try {
       console.log('perform', { config });
-      const response = await api.request(config);
-      onCallback && onCallback({ config, data: response });
+      let response;
+      if(config?.isFormdata && !(config?.data instanceof FormData)){
+        const updateConfig={...config,data:objectToFormData(config.data)}
+        response = await api.request(updateConfig);
+      }else {
+        response = await api.request(config);
+      }
+ 
+      onCallback && onCallback({ config, data: response,sendRequest });
       return response.data;
     } catch (error) {
+      console.log('packageError', { error });
       if (config.retryCount < RETRY_LIMIT) {
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
         config.retryCount++;
@@ -129,19 +152,20 @@ export const OfflineSyncProvider: FC<{
       return;
     }
 
-    // alert(`Back online! Your requests will sync with the server now`);
-
+    const requestClone = [...storedRequests];
     for (const request of storedRequests) {
       if (request) {
         try {
           await performRequest(request);
-          await localForage.setItem(
-            API_REQUESTS_STORAGE_KEY,
-            [...storedRequests].filter((sr: any) => sr.id !== request.id)
+          // Remove the request with a matching id from requestClone
+          const updatedRequests = requestClone.filter(
+            sr => sr.id !== request.id
           );
-          //  await localForage.setItem(API_REQUESTS_STORAGE_KEY, [...storedRequests].splice(storedRequests.indexOf(request), [...storedRequests].filter((sr:any)=>sr.id===request.id)?.length || 1 ));
+          requestClone.splice(0, requestClone.length, ...updatedRequests);
         } catch (error) {
           console.log({ error });
+        } finally {
+          await localForage.setItem(API_REQUESTS_STORAGE_KEY, requestClone);
         }
       }
     }
@@ -150,7 +174,14 @@ export const OfflineSyncProvider: FC<{
   return (
     <>
       <DataSyncContext.Provider
-        value={{ data, setData, sendRequest, clearStoredRequests }}
+        value={{
+          data,
+          setData,
+          sendRequest,
+          clearStoredRequests,
+          getStoredRequests,
+          setStorage,
+        }}
       >
         {render?.({ isOnline })}
         {children}
