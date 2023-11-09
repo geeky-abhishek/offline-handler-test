@@ -90,7 +90,6 @@ export const OfflineSyncProvider: FC<{
 
       if (apiConfig?.isFormdata && apiConfig?.data instanceof FormData) {
         // console.log({ apiConfig })
-        console.log("Saving request as Form Data")
         storedRequests.push(omit({ ...apiConfig, data: formDataToObject(apiConfig.data) }, 'onSuccess'));
       }
       else {
@@ -138,11 +137,11 @@ export const OfflineSyncProvider: FC<{
       config.retryCount = config.retryCount ?? 0;
       config.id = generateUuid();
       // Perform the API request and handle retries
-      if (!navigator.onLine) {
-        alert(
-          'You are currently offline. We will automatically resend the request when you are back online.'
-        );
-      }
+      // if (!navigator.onLine) {
+      //   alert(
+      //     'You are currently offline. We will automatically resend the request when you are back online.'
+      //   );
+      // }
       return await performRequest(config);
     } catch (error) {
       throw error;
