@@ -135,42 +135,111 @@ export const OfflineSyncProvider: FC<{
       config.retryCount = config.retryCount ?? 0;
       config.id = generateUuid();
       // Perform the API request and handle retries
-      if (!navigator.onLine) {
-        alert(
-          'You are currently offline. We will automatically resend the request when you are back online.'
-        );
-      }
+     
       return await performRequest(config);
     } catch (error) {
       throw error;
     }
   };
 
+  // const syncOfflineRequests = async () => {
+  //   const storedRequests: any = await getStoredRequests();
+  //   if (!storedRequests || storedRequests.length === 0) {
+  //     return;
+  //   }
+
+  //   const requestClone = [...storedRequests];
+  //   for (const request of storedRequests) {
+  //     if (request) {
+  //       try {
+  //         await performRequest(request);
+  //         // Remove the request with a matching id from requestClone
+  //         const updatedRequests = requestClone.filter(
+  //           sr => sr.id !== request.id
+  //         );
+  //         requestClone.splice(0, requestClone.length, ...updatedRequests);
+  //       } catch (error) {
+  //         console.log({ error });
+  //       } finally {
+  //         await localForage.setItem(API_REQUESTS_STORAGE_KEY, requestClone);
+  //       }
+  //     }
+  //   }
+  // };
+
   const syncOfflineRequests = async () => {
-    const storedRequests: any = await getStoredRequests();
+    if (!navigator.onLine) {
+      alert(
+        'Syncing stored requests'
+      );
+    }
+    const storedRequests :any = await getStoredRequests();
     if (!storedRequests || storedRequests.length === 0) {
       return;
     }
-
-    const requestClone = [...storedRequests];
-    for (const request of storedRequests) {
-      if (request) {
-        try {
-          await performRequest(request);
-          // Remove the request with a matching id from requestClone
-          const updatedRequests = requestClone.filter(
-            sr => sr.id !== request.id
-          );
-          requestClone.splice(0, requestClone.length, ...updatedRequests);
-        } catch (error) {
-          console.log({ error });
-        } finally {
-          await localForage.setItem(API_REQUESTS_STORAGE_KEY, requestClone);
+  
+    // const batchSize = 5;
+    // for (let i = 0; i < storedRequests.length; i += batchSize) {
+    //   const batch = storedRequests.slice(i, i + batchSize);
+    //   const batchPromises = batch.map(async (request:any) => {
+    //     if (request) {
+    //       try {
+    //         await performRequest(request);
+    //         // Remove the request with a matching id from storedRequests
+    //         const index = storedRequests.findIndex((sr:any) => sr.id === request.id);
+    //         if (index !== -1) {
+    //           storedRequests.splice(index, 1);
+    //         }
+    //       } catch (error) {
+    //         console.log({ error });
+    //       } finally {
+    //         await localForage.setItem(API_REQUESTS_STORAGE_KEY, storedRequests);
+    //       }
+    //     }
+    //   });
+  
+    //   try {
+    //     await Promise.all(batchPromises);
+    //   } catch (error) {
+    //     console.log('Error processing batch:', error);
+    //   }
+  
+    //   // Wait for 3 seconds after each batch is processed
+    //   await new Promise(resolve => setTimeout(resolve, 3000));
+    // }
+    const batchSize = 5;
+    const delayBetweenBatches = 5000; // Delay of 5 seconds
+  
+    for (let i = 0; i < storedRequests.length; i += batchSize) {
+      const batch = storedRequests.slice(i, i + batchSize);
+      const batchPromises = batch.map(async (request:any) => {
+        if (request) {
+          try {
+            await performRequest(request);
+            // Remove the request with a matching id from storedRequests
+            const index = storedRequests.findIndex((sr:any) => sr.id === request.id);
+            if (index !== -1) {
+              storedRequests.splice(index, 1);
+            }
+          } catch (error) {
+            console.error({ error });
+          } finally {
+            await localForage.setItem(API_REQUESTS_STORAGE_KEY, storedRequests);
+          }
         }
+      });
+  
+      try {
+        await Promise.all(batchPromises);
+      } catch (error) {
+        console.error('Error processing batch:', error);
       }
-    }
+  
+      // Wait for 5 seconds after each batch is processed, if there are more batches to process
+      if (i + batchSize < storedRequests.length) {
+        await new Promise((resolve) => setTimeout(resolve, delayBetweenBatches));
+      }}
   };
-
   return (
     <>
       <DataSyncContext.Provider
@@ -193,4 +262,4 @@ export const OfflineSyncProvider: FC<{
 // Custom hook to access offline sync context
 export const useOfflineSyncContext = () => {
   return useContext(DataSyncContext);
-};
+}
