@@ -84,18 +84,21 @@ export const OfflineSyncProvider: FC<{
 
   const saveRequestToOfflineStorage = async (apiConfig: any) => {
     try {
+      console.log("Saving request to oflfine storage ->>", apiConfig)
       const storedRequests: Array<any> =
         (await localForage.getItem(API_REQUESTS_STORAGE_KEY)) || [];
-      
-      if(apiConfig?.isFormdata && apiConfig?.data instanceof FormData){
-        console.log({apiConfig})
-        storedRequests.push(omit({ ...apiConfig,data:formDataToObject(apiConfig.data) }, 'onSuccess'));
+
+      if (apiConfig?.isFormdata && apiConfig?.data instanceof FormData) {
+        // console.log({ apiConfig })
+        console.log("Saving request as Form Data")
+        storedRequests.push(omit({ ...apiConfig, data: formDataToObject(apiConfig.data) }, 'onSuccess'));
       }
-     else {
-      storedRequests.push(omit({ ...apiConfig }, 'onSuccess'));
-    
-     }
-     await localForage.setItem(API_REQUESTS_STORAGE_KEY, storedRequests);
+      else {
+        console.log("Saving request normally")
+        storedRequests.push(omit({ ...apiConfig }, 'onSuccess'));
+
+      }
+      await localForage.setItem(API_REQUESTS_STORAGE_KEY, storedRequests);
     } catch (error) {
       console.error('Error saving API request for offline:', error);
     }
@@ -106,14 +109,14 @@ export const OfflineSyncProvider: FC<{
     try {
       console.log('perform', { config });
       let response;
-      if(config?.isFormdata && !(config?.data instanceof FormData)){
-        const updateConfig={...config,data:objectToFormData(config.data)}
+      if (config?.isFormdata && !(config?.data instanceof FormData)) {
+        const updateConfig = { ...config, data: objectToFormData(config.data) }
         response = await api.request(updateConfig);
-      }else {
+      } else {
         response = await api.request(config);
       }
- 
-      onCallback && onCallback({ config, data: response,sendRequest });
+
+      onCallback && onCallback({ config, data: response, sendRequest });
       return response.data;
     } catch (error) {
       console.log('packageError', { error });
